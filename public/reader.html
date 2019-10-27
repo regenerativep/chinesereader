@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var socket;
+            var userInputBox, saveNameInputBox, saveListDiv, defWordInput, defPinyinInput, defDefInput;
+            var saveNameList = {};
+            var wordDict = {};
+            function addSaveToList(name, text)
+            {
+                if(saveNameList.hasOwnProperty(name))
+                {
+                    saveNameList[name] = text;
+                    return;
+                }
+                let textElem = document.createElement("p");
+                textElem.innerHTML = name;
+                textElem.addEventListener("click", () => {
+                    loadText(text);
+                });
+                let elem = document.createElement("div");
+                elem.appendChild(textElem);
+                saveListDiv.appendChild(elem);
+                saveNameList[name] = text;
+            }
+            function loadText(text)
+            {
+                let outputTextElem = document.getElementById("outputText");
+                outputTextElem.innerHTML = "";
+                let pinyinText = "";
+                let lines = text.split("\n\r");
+                for(let i = 0; i < lines.length; i++)
+                {
+                    let line = lines[i];
+                    //find all of the words
+                    while(line.length > 0)
+                    {
+                        word = "";
+                        for(let key in wordDict)
+                        {
+                            if(line.substring(0, key.length) == key)
+                            {
+                                if(key.length > word.length)
+                                {
+                                    word = key;
+                                }
+                            }
+                        }
+                        let wordSpan = document.createElement("span");
+                        if(word.length == 0)
+                        {
+                            word = line[0];
+                            pinyinText += word;
+                        }
+                        else
+                        {
+                            wordSpan.addEventListener("click", (function(w) {
+                                return function() {
+                                    setDictionaryPage(w);
+                                };
+                            })(word));
+                            pinyinText += " " + wordDict[word].pinyin;
+                        }
+                        wordSpan.innerHTML = word;
+                        line = line.substring(word.length);
+                        outputTextElem.appendChild(wordSpan);
+                    }
+                    outputTextElem.appendChild(document.createElement("br"));
+                    pinyinText += "<br>";
+                }
+                let pinyinTextElem = document.getElementById("pinyinText");
+                pinyinTextElem.innerHTML = pinyinText;
+
+            }
+            function setDictionaryPage(word)
+            {
+                let wordObj = wordDict[word];
+                document.getElementById("dictWord").innerHTML = "Word: " + word;
+                document.getElementById("dictPinyin").innerHTML = "Pinyin: " + wordObj.pinyin;
+                document.getElementById("dictDefinition").innerHTML = "Definition: " + wordObj.definition;
+                document.getElementById("dictHsk").innerHTML = "HSK: " + wordObj.hsk;
+            }
+            window.addEventListener("load", () => {
+                socket = new WebSocket("ws://127.0.0.1:5524");
+                socket.onmessage = (ev) => {
+                    var dataObj = JSON.parse(ev.data);
+                    switch(dataObj.type)
+                    {
+                        case "column":
+                            if(dataObj.name == "saves")
+                            {
+                                for(let key in dataObj.column)
+                                {
+                                    addSaveToList(key, dataObj.column[key]);
+                                }
+                            }
+                            else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
+                            {
+                                for(let key in dataObj.column)
+                                {
+                                    let item = dataObj.column[key];
+                                    item.hsk = parseInt(dataObj.name.substring(3));
+                                    wordDict[key] = item;
+                                }
+                            }
+                            break;
+                    }
+                };
+                socket.onopen = (ev) => {
+                    for(let i = 1; i <= 6; i++)
+                    {
+                        socket.send(JSON.stringify({
+                            type: "request",
+                            column: "hsk" + i
+                        }));
+                    }
+                    socket.send(JSON.stringify({
+                        type: "request",
+                        column: "other"
+                    }));
+                    socket.send(JSON.stringify({
+                        type: "request",
+                        column: "saves"
+                    }));
+                };
+                userInputBox = document.getElementById("userInput");
+                saveNameInputBox = document.getElementById("saveNameInput");
+                saveListDiv = document.getElementById("saveList");
+                let submitButton = document.getElementById("textSubmitButton");
+                submitButton.addEventListener("click", () => {
+                    let name = saveNameInputBox.value;
+                    let text = userInputBox.value;
+                    socket.send(JSON.stringify({
+                        type: "set",
+                        column: "saves",
+                        row: name,
+                        item: text
+                    }));
+                    addSaveToList(name, text);
+                });
+                defWordInput = document.getElementById("inputDefName");
+                defPinyinInput = document.getElementById("inputDefPinyin");
+                defDefInput = document.getElementById("inputDefDefinition");
+                let submitDefinitionButton = document.getElementById("inputDefButton");
+                submitDefinitionButton.addEventListener("click", () => {
+                    let word = defWordInput.value;
+                    let pinyin = defPinyinInput.value;
+                    let definition = defDefInput.value;
+                    let defObj = {
+                        word: word,
+                        pinyin: pinyin,
+                        definition: definition,
+                        hsk: 0
+                    };
+                    wordDict[word] = defObj;
+                    socket.send(JSON.stringify({
+                        type: "set",
+                        column: "other",
+                        row: word,
+                        item: defObj
+                    }));
+                });
+            });
+        </script>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 15pt;
+                background-color: aqua;
+            }
+            body div {
+                text-overflow: clip;
+            }
+            .dictbox {
+                outline-color: black;
+                outline-width: 2px;
+                outline-style: solid;
+                padding: 8px;
+                background-color: white;
+            }
+            .dictbox div {
+                outline-color: lightgray;
+                outline-width: 1px;
+                outline-style: solid;
+                padding: 8px;
+            }
+            .dictbox div p {
+                margin: 0px;
+            }
+            .savelist {
+                outline-color: black;
+                outline-width: 2px;
+                outline-style: solid;
+                padding: 8px;
+                background-color: white;
+            }
+            .savelist div {
+                outline-color: black;
+                outline-width: 2px;
+                outline-style: solid;
+                padding: 8px;
+                margin-left: 8px;
+                display: inline-block;
+            }
+            .savelist div p {
+                margin: 0px;
+            }
+            #outputText {
+                font-size: 20pt;
+                margin-left: 24px;
+                display: block;
+            }
+            #pinyinText {
+                font-size: 15pt;
+                word-wrap: break-word;
+            }
+            .inputArea {
+                outline-color: black;
+                outline-width: 2px;
+                outline-style: solid;
+                padding: 8px;
+                background-color: white;
+            }
+            .title {
+                font-size: 30pt;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <p class="title">Chinese Text Reading Assistant</p>
+        <div style="height: 512px;">
+            <div class="inputArea" style="float:left;">
+                <p>Input text below</p>
+                <textarea id="userInput" rows="10" cols="60"></textarea><br>
+                <p style="display:inline-block;">Save name</p>
+                <input type="text" id="saveNameInput" style="display:inline-block;">
+                <input type="button" value="Save" id="textSubmitButton">
+            </div>
+            <div class="inputArea" style="float:right;">
+                <p>Input new dictionary definition below</p>
+                <input type="text" id="inputDefName" placeholder="word"><br>
+                <input type="text" id="inputDefPinyin" placeholder="pinyin"><br>
+                <textarea id="inputDefDefinition" rows="4" cols="50" placeholder="definition"></textarea><br>
+                <input type="button" value="Define" id="inputDefButton">
+            </div>
+        </div>
+        <div id="saveList" class="savelist">
+            <p>Saved texts</p>
+        </div>
+        <hr>
+        <div>
+            <pre id="outputText"></pre>
+            <pre id="pinyinText"></pre>
+        </div>
+        <div class="dictbox">
+            <p>Word information</p>
+            <div style="display:inline-block;">
+                <p id="dictWord"></p>
+            </div>
+            <div style="display:inline-block;">
+                <p id="dictPinyin"></p>
+            </div>
+            <div style="display:inline-block;">
+                <p id="dictHsk"></p>
+            </div>
+            <div>
+                <p id="dictDefinition"></p>
+            </div>
+        </div>
+    </body>
+</html>
