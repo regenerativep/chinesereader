@@ -68,8 +68,15 @@ function main()
                         }
                         socket.send(JSON.stringify({
                             type: "column",
+                            name: column,
                             column: columnData
                         }));
+                        break;
+                    }
+                case "reset":
+                    {
+                        database = {};
+                        changesMade = true;
                         break;
                     }
             }
