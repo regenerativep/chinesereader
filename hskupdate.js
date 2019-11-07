@@ -10,11 +10,11 @@ var tonedVowels = [
     ["iù", "à", "è", "ì​", "ò", "ù"],
     ["iu", "a", "e", "i", "o", "u"]
 ];
-function getLowestVowel(zi)
+function getLowestVowel(字)
 {
     for(let i = 0; i < vowels.length; i++)
     {
-        let ind = zi.indexOf(vowels[i]);
+        let ind = 字.indexOf(vowels[i]);
         if(ind >= 0)
         {
             return i;
