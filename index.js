@@ -34,7 +34,7 @@ function main()
 
     webServer = express();
     webServer.use(express.static("public"));
-    webServer.listen(82, () => {console.log("server listening on port 82");});
+    webServer.listen(8080, () => {console.log("server listening on port 8080");});
 
     socketServer = new WebSocket.Server({
         port: 5524
