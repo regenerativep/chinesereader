@@ -45,17 +45,34 @@ function numberedPinyinToTonedPinyin(numbered)
     }
     return pinyin;
 }
+function getLineEnding(text)
+{
+    let lineEnding = "";
+    for(let i = 0; i < text.length; i++)
+    {
+        let char = text[i];
+        if(char == "\r" || char == "\n")
+        {
+            lineEnding += char;
+        }
+        else if(lineEnding.length > 0)
+        {
+            break;
+        }
+    }
+    return lineEnding;
+}
 function parseu8File(filename)
 {
     let fileString = fs.readFileSync(filename, "utf8");
-    let lines = fileString.split("\r\n");
+    let lines = fileString.split(getLineEnding(fileString));
     dict = [];
     for(let i = 0; i < lines.length; i++)
     {
         let line = lines[i];
         if(line[0] == "#" || line.length == 0) continue;
         let parts = parseu8Line(line);
-        let chars = parts[1];//.replace("\ufeff", "");
+        let chars = parts[1].replace("\ufeff", "");
         let pinyin = parts[2];
         let def = parts[3];
         dict.push({
