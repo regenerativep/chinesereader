@@ -23,7 +23,6 @@ function loadText(text)
 {
     let outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
-    let pinyinText = "";
     let lines = text.split("\n\r");
     for(let i = 0; i < lines.length; i++)
     {
@@ -31,6 +30,7 @@ function loadText(text)
         //find all of the words
         while(line.length > 0)
         {
+            //todo optimize this
             word = "";
             for(let key in wordDict)
             {
@@ -42,30 +42,35 @@ function loadText(text)
                     }
                 }
             }
-            let wordSpan = document.createElement("span");
+            let wordDiv = document.createElement("div");
+            wordDiv.setAttribute("style", "display:inline-block;margin-right:1em;")
+            let zitext = document.createElement("p");
+            zitext.setAttribute("style", "text-align:center;font-size:24px;");
+            let pinyintext = document.createElement("p");
+            pinyintext.setAttribute("style", "text-align:center;font-size:18px;");
+            wordDiv.appendChild(zitext);
+            wordDiv.appendChild(pinyintext);
+            outputTextElem.appendChild(wordDiv);
             if(word.length == 0)
             {
                 word = line[0];
-                pinyinText += word;
+                zitext.innerHTML = word;
+                pinyintext.innerHTML = word;
             }
             else
             {
-                wordSpan.addEventListener("click", (function(w) {
+                wordDiv.addEventListener("click", (function(w) {
                     return function() {
                         setDictionaryPage(w);
                     };
                 })(word));
-                pinyinText += " " + wordDict[word].pinyin;
+                zitext.innerHTML = word;
+                pinyintext.innerHTML = wordDict[word].pinyin;
             }
-            wordSpan.innerHTML = word;
             line = line.substring(word.length);
-            outputTextElem.appendChild(wordSpan);
         }
         outputTextElem.appendChild(document.createElement("br"));
-        pinyinText += "<br>";
     }
-    let pinyinTextElem = document.getElementById("pinyinText");
-    pinyinTextElem.innerHTML = pinyinText;
 
 }
 function setDictionaryPage(word)
