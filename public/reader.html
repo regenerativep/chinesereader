@@ -49,10 +49,7 @@
                 font-size: 20pt;
                 margin-left: 24px;
                 display: block;
-            }
-            #pinyinText {
-                font-size: 15pt;
-                word-wrap: break-word;
+                overflow: auto;
             }
             .inputArea {
                 outline-color: black;
@@ -90,22 +87,23 @@
         </div>
         <hr>
         <div>
-            <pre id="outputText"></pre>
-            <pre id="pinyinText"></pre>
-        </div>
-        <div class="dictbox">
-            <p>Word information</p>
-            <div style="display:inline-block;">
-                <p id="dictWord"></p>
+            <div style="width:70%;float:left;">
+                <div id="outputText"></div>
             </div>
-            <div style="display:inline-block;">
-                <p id="dictPinyin"></p>
-            </div>
-            <div style="display:inline-block;">
-                <p id="dictHsk"></p>
-            </div>
-            <div>
-                <p id="dictDefinition"></p>
+            <div style="width:25%;float:right;" class="dictbox">
+                <p>Word information</p>
+                <div style="display:inline-block;">
+                    <p id="dictWord"></p>
+                </div>
+                <div style="display:inline-block;">
+                    <p id="dictPinyin"></p>
+                </div>
+                <div style="display:inline-block;">
+                    <p id="dictHsk"></p>
+                </div>
+                <div>
+                    <p id="dictDefinition"></p>
+                </div>
             </div>
         </div>
     </body>

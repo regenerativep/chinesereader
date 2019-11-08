@@ -41,7 +41,7 @@ function numberedPinyinToTonedPinyin(numbered)
     let pinyin = parts[0];
     for(let i = 1; i < parts.length; i++)
     {
-        pinyin += " " + parts[i];
+        pinyin += parts[i];
     }
     return pinyin;
 }
