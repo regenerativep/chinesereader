@@ -48,12 +48,22 @@ function numberedPinyinToTonedPinyin(numbered)
 function getLineEnding(text)
 {
     let lineEnding = "";
+    let foundR = false;
+    let foundN = false;
     for(let i = 0; i < text.length; i++)
     {
         let char = text[i];
-        if(char == "\r" || char == "\n")
+        if((char == "\r" && !foundR) || (char == "\n" && !foundN))
         {
             lineEnding += char;
+            if(char == "\r")
+            {
+                foundR = true;
+            }
+            if(char == "\n")
+            {
+                foundN = true;
+            }
         }
         else if(lineEnding.length > 0)
         {

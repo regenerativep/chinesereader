@@ -84,18 +84,50 @@ function updateLoading(percent)
     {
         loadingElement.innerHTML = "(Loading: " + Math.floor(percent * 100) + "%)";
     }
+}function getLineEnding(text)
+{
+    let lineEnding = "";
+    let foundR = false;
+    let foundN = false;
+    for(let i = 0; i < text.length; i++)
+    {
+        let char = text[i];
+        if((char == "\r" && !foundR) || (char == "\n" && !foundN))
+        {
+            lineEnding += char;
+            if(char == "\r")
+            {
+                foundR = true;
+            }
+            if(char == "\n")
+            {
+                foundN = true;
+            }
+        }
+        else if(lineEnding.length > 0)
+        {
+            break;
+        }
+    }
+    return lineEnding;
 }
 function loadText(text)
 {
     let outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
-    let totalChars = text.length;
-    let totalProgress = 0;
-    let lines = text.split("\n\r");
+    let lineEnding = getLineEnding(text);
+    console.log({e:lineEnding})
+    console.log({e:text});
+    let lines = text.split(lineEnding);
+    console.log(lines);
     for(let i = 0; i < lines.length; i++)
     {
         let line = lines[i];
+        console.log({i:i,e:line})
+        let lineElem = document.createElement("div");
         //find all of the words
+        let lastWordDiv = null;
+        let lastWordIsDef = false;
         while(line.length > 0)
         {
             //todo optimize this
@@ -118,12 +150,24 @@ function loadText(text)
             pinyintext.setAttribute("class", "wordPinyin");
             wordDiv.appendChild(zitext);
             wordDiv.appendChild(pinyintext);
-            outputTextElem.appendChild(wordDiv);
             if(word.length == 0)
             {
                 word = line[0];
-                zitext.innerHTML = word;
-                pinyintext.innerHTML = word;
+                if(lastWordIsDef || lastWordDiv == null)
+                {
+                    zitext.innerHTML = word;
+                    pinyintext.innerHTML = word;
+                    lineElem.appendChild(wordDiv);
+                }
+                else
+                {
+                    wordDiv = lastWordDiv;
+                    zitext = wordDiv.children[0];
+                    pinyintext = wordDiv.children[1];
+                    zitext.innerHTML += word;
+                    pinyintext.innerHTML += word;
+                }
+                lastWordIsDef = false;
             }
             else
             {
@@ -134,13 +178,13 @@ function loadText(text)
                 })(word));
                 zitext.innerHTML = word;
                 pinyintext.innerHTML = wordDict[word].pinyin;
+                lastWordIsDef = true;
+                lineElem.appendChild(wordDiv);
             }
-            totalProgress += word.length;
-            //updateLoading(totalProgress / totalChars);
             line = line.substring(word.length);
+            lastWordDiv = wordDiv;
         }
-        //todo add proper multiline support
-        outputTextElem.appendChild(document.createElement("br"));
+        outputTextElem.appendChild(lineElem);
     }
     updateLoading(null);
 }
@@ -149,6 +193,7 @@ function setDictionaryPage(word)
     let wordObj = wordDict[word];
     if(typeof wordObj !== "undefined")
     {
+        document.getElementById("dictBox").setAttribute("style", "display:block;");
         document.getElementById("dictWord").innerHTML = "Word: " + word;
         document.getElementById("dictPinyin").innerHTML = "Pinyin: " + wordObj.pinyin;
         document.getElementById("dictDefinition").innerHTML = "Definition: " + wordObj.definition;
@@ -290,5 +335,8 @@ window.addEventListener("load", () => {
             let wordData = results[i];
             outputElem.innerHTML += wordData.word + ": " + wordData.definition + "<br>";
         }
+    });
+    document.getElementById("dictBoxCloseButton").addEventListener("click", () => {
+        document.getElementById("dictBox").setAttribute("style", "display:none;");
     });
 });
