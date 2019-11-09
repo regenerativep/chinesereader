@@ -1,5 +1,5 @@
 var socket;
-var userInputBox, saveNameInputBox, saveListDiv, defWordInput, defPinyinInput, defDefInput;
+var userInputBox, saveNameInputBox, saveListDiv, defWordInput, defPinyinInput, defDefInput, lookupCharInp, lookupPinyinInp;
 var saveNameList = {};
 var wordDict = {};
 function addSaveToList(name, text)
@@ -11,18 +11,86 @@ function addSaveToList(name, text)
     }
     let textElem = document.createElement("p");
     textElem.innerHTML = name;
-    textElem.addEventListener("click", () => {
-        loadText(text);
-    });
     let elem = document.createElement("div");
+    elem.addEventListener("click", () => {
+        updateLoading("Loading");
+        window.setTimeout(() => {
+            loadText(text);
+        }, 16);
+    });
     elem.appendChild(textElem);
     saveListDiv.appendChild(elem);
     saveNameList[name] = text;
+}
+var vowels = ["iu", "a", "e", "i", "o", "u"];
+var tonedVowels = [
+    ["iū", "ā", "ē", "ī", "ō", "ū"],
+    ["iú", "á", "é", "í", "ó", "ú"],
+    ["iǔ", "ǎ", "ě", "ǐ", "ǒ", "ǔ"],
+    ["iù", "à", "è", "ì​", "ò", "ù"],
+    ["iu", "a", "e", "i", "o", "u"]
+];
+function getLowestVowel(字)
+{
+    for(let i = 0; i < vowels.length; i++)
+    {
+        let ind = 字.indexOf(vowels[i]);
+        if(ind >= 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+function numberedPinyinToTonedPinyin(numbered)
+{
+    let parts = numbered.split(" ");
+    for(let i = 0; i < parts.length; i++)
+    {
+        let part = parts[i];
+        let tone = parseInt(part.substring(part.length - 1)) - 1;
+        if(isNaN(tone))
+        {
+            continue;
+        }
+        part = part.substring(0, part.length - 1);
+        let vowelInd = getLowestVowel(part);
+        part = part.replace(vowels[vowelInd], tonedVowels[tone][vowelInd]);
+        parts[i] = part;
+    }
+    let pinyin = parts[0];
+    for(let i = 1; i < parts.length; i++)
+    {
+        pinyin += parts[i];
+    }
+    return pinyin;
+}
+var loadingElement = null;
+function updateLoading(percent)
+{
+    if(loadingElement == null)
+    {
+        loadingElement = document.getElementById("loadingOutput");
+    }
+    if(percent == null)
+    {
+        loadingElement.innerHTML = "";
+    }
+    else if(typeof percent === "string")
+    {
+        loadingElement.innerHTML = "(" + percent + ")";
+    }
+    else if(typeof percent === "number")
+    {
+        loadingElement.innerHTML = "(Loading: " + Math.floor(percent * 100) + "%)";
+    }
 }
 function loadText(text)
 {
     let outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
+    let totalChars = text.length;
+    let totalProgress = 0;
     let lines = text.split("\n\r");
     for(let i = 0; i < lines.length; i++)
     {
@@ -43,11 +111,11 @@ function loadText(text)
                 }
             }
             let wordDiv = document.createElement("div");
-            wordDiv.setAttribute("style", "display:inline-block;margin-right:1em;")
+            wordDiv.setAttribute("class", "word")
             let zitext = document.createElement("p");
-            zitext.setAttribute("style", "text-align:center;font-size:24px;");
+            zitext.setAttribute("class", "wordChar");
             let pinyintext = document.createElement("p");
-            pinyintext.setAttribute("style", "text-align:center;font-size:18px;");
+            pinyintext.setAttribute("class", "wordPinyin");
             wordDiv.appendChild(zitext);
             wordDiv.appendChild(pinyintext);
             outputTextElem.appendChild(wordDiv);
@@ -67,19 +135,25 @@ function loadText(text)
                 zitext.innerHTML = word;
                 pinyintext.innerHTML = wordDict[word].pinyin;
             }
+            totalProgress += word.length;
+            //updateLoading(totalProgress / totalChars);
             line = line.substring(word.length);
         }
+        //todo add proper multiline support
         outputTextElem.appendChild(document.createElement("br"));
     }
-
+    updateLoading(null);
 }
 function setDictionaryPage(word)
 {
     let wordObj = wordDict[word];
-    document.getElementById("dictWord").innerHTML = "Word: " + word;
-    document.getElementById("dictPinyin").innerHTML = "Pinyin: " + wordObj.pinyin;
-    document.getElementById("dictDefinition").innerHTML = "Definition: " + wordObj.definition;
-    document.getElementById("dictHsk").innerHTML = "HSK: " + wordObj.hsk;
+    if(typeof wordObj !== "undefined")
+    {
+        document.getElementById("dictWord").innerHTML = "Word: " + word;
+        document.getElementById("dictPinyin").innerHTML = "Pinyin: " + wordObj.pinyin;
+        document.getElementById("dictDefinition").innerHTML = "Definition: " + wordObj.definition;
+        document.getElementById("dictHsk").innerHTML = "HSK: " + wordObj.hsk;
+    }
 }
 window.addEventListener("load", () => {
     socket = new WebSocket("ws://127.0.0.1:5524");
@@ -187,5 +261,34 @@ window.addEventListener("load", () => {
             row: word,
             item: defObj
         }));
+    });
+    lookupCharInp = document.getElementById("inputLookupCharacters");
+    lookupPinyinInp = document.getElementById("inputLookupPinyin");
+    document.getElementById("inputLookupCharactersButton").addEventListener("click", () => {
+        let inp = lookupCharInp.value;
+        setDictionaryPage(inp);
+    });
+    document.getElementById("inputLookupPinyinButton").addEventListener("click", () => {
+        let inp = lookupPinyinInp.value;
+        //turn it into toned pinyin
+        let pinyin = numberedPinyinToTonedPinyin(inp);
+        //find the corresponding dict values
+        let results = [];
+        for(let word in wordDict)
+        {
+            let wordData = wordDict[word];
+            if(wordData.pinyin == pinyin)
+            {
+                results.push(wordData);
+            }
+        }
+        //output them to the user
+        let outputElem = document.getElementById("pinyinLookupResults");
+        outputElem.innerHTML = "";
+        for(let i = 0; i < results.length; i++)
+        {
+            let wordData = results[i];
+            outputElem.innerHTML += wordData.word + ": " + wordData.definition + "<br>";
+        }
     });
 });

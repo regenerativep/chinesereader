@@ -7,6 +7,7 @@
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 15pt;
                 background-color: aqua;
+                margin-bottom: 20em;
             }
             body div {
                 text-overflow: clip;
@@ -42,6 +43,9 @@
                 margin-left: 8px;
                 display: inline-block;
             }
+            .savelist div:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
             .savelist div p {
                 margin: 0px;
             }
@@ -57,53 +61,87 @@
                 outline-style: solid;
                 padding: 8px;
                 background-color: white;
+                display: inline-block;
+                overflow: auto;
             }
             .title {
                 font-size: 30pt;
                 text-align: center;
             }
+            .word {
+                display: inline-block;
+                padding-left: 0.1em;
+                padding-right: 0.1em;
+            }
+            .word:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+            .word p {
+                text-align: center;
+            }
+            .wordChar {
+                font-size: 24pt;
+            }
+            .wordPinyin {
+                font-size: 18pt;
+            }
+            .fixed {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+            }
         </style>
     </head>
     <body>
         <p class="title">Chinese Text Reading Assistant</p>
-        <div style="height: 512px;">
-            <div class="inputArea" style="float:left;">
+        <div>
+            <div class="inputArea">
                 <p>Input text below</p>
                 <textarea id="userInput" rows="10" cols="60"></textarea><br>
                 <p style="display:inline-block;">Save name</p>
                 <input type="text" id="saveNameInput" style="display:inline-block;">
                 <input type="button" value="Save" id="textSubmitButton">
             </div>
-            <div class="inputArea" style="float:right;">
-                <p>Input new dictionary definition below</p>
+            <div class="inputArea">
+                <p>Input new dictionary definition</p>
                 <input type="text" id="inputDefName" placeholder="word"><br>
                 <input type="text" id="inputDefPinyin" placeholder="pinyin"><br>
                 <textarea id="inputDefDefinition" rows="4" cols="50" placeholder="definition"></textarea><br>
                 <input type="button" value="Define" id="inputDefButton">
             </div>
+            <div class="inputArea">
+                <p>Lookup word</p>
+                <p>Characters</p>
+                <input type="text" id="inputLookupCharacters" placeholder="characters">
+                <input type="button" id="inputLookupCharactersButton" value="Look up">
+                <p>Pinyin (separate each by a space ex. "ni3 hao3")</p>
+                <input type="text" id="inputLookupPinyin" placeholder="pinyin">
+                <input type="button" id="inputLookupPinyinButton" value="Look up">
+                <div style="overflow:scroll;height:6em;">
+                    <p id="pinyinLookupResults"></p>
+                </div>
+            </div>
         </div>
         <div id="saveList" class="savelist">
-            <p>Saved texts</p>
+            <p>Saved texts</p><p id="loadingOutput"></p>
         </div>
         <hr>
         <div>
-            <div style="width:70%;float:left;">
-                <div id="outputText"></div>
+            <div id="outputText"></div>
+        </div>
+        <div class="dictbox fixed">
+            <p>Word information</p>
+            <div style="display:inline-block;">
+                <p id="dictWord"></p>
             </div>
-            <div style="width:25%;float:right;" class="dictbox">
-                <p>Word information</p>
-                <div style="display:inline-block;">
-                    <p id="dictWord"></p>
-                </div>
-                <div style="display:inline-block;">
-                    <p id="dictPinyin"></p>
-                </div>
-                <div style="display:inline-block;">
-                    <p id="dictHsk"></p>
-                </div>
-                <div>
-                    <p id="dictDefinition"></p>
-                </div>
+            <div style="display:inline-block;">
+                <p id="dictPinyin"></p>
+            </div>
+            <div style="display:inline-block;">
+                <p id="dictHsk"></p>
+            </div>
+            <div>
+                <p id="dictDefinition"></p>
             </div>
         </div>
     </body>
