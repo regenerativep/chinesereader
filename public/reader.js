@@ -109,6 +109,10 @@ function updateLoading(percent)
             break;
         }
     }
+    if(lineEnding.length == 0)
+    {
+        lineEnding = "\n";
+    }
     return lineEnding;
 }
 function loadText(text)
