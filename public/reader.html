@@ -20,12 +20,20 @@
                 padding: 8px;
                 background-color: white;
             }
-            .dictbox div {
+            #dictBoxContent {
+                max-height: 16em;
+                max-width: 48em;
+                overflow: scroll;
+            }
+            #dictBoxContent div {
                 outline-color: lightgray;
                 outline-width: 1px;
                 outline-style: solid;
                 padding: 8px;
                 margin: 2px;
+            }
+            #dictBoxContent div div {
+                display: inline-block;
             }
             .dictbox div p {
                 margin: 0px;
@@ -142,23 +150,11 @@
             <div id="outputText"></div>
         </div>
         <div class="dictbox fixed" id="dictBox" style="display:none;">
-            <div>
-                <div style="display:inline-block;">
-                    <p id="dictBoxCloseButton">Close</p>
-                </div>
-                <p style="display:inline-block;">Word information</p>
-            </div>
             <div style="display:inline-block;">
-                <p id="dictWord"></p>
+                <p id="dictBoxCloseButton">Close</p>
             </div>
-            <div style="display:inline-block;">
-                <p id="dictPinyin"></p>
-            </div>
-            <div style="display:inline-block;">
-                <p id="dictHsk"></p>
-            </div>
-            <div>
-                <p id="dictDefinition"></p>
+            <div id="dictBoxContent">
+
             </div>
         </div>
     </body>

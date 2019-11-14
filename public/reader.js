@@ -181,7 +181,7 @@ function loadText(text)
                     };
                 })(word));
                 zitext.innerHTML = word;
-                pinyintext.innerHTML = wordDict[word].pinyin;
+                pinyintext.innerHTML = wordDict[word][0].pinyin;
                 lastWordIsDef = true;
                 lineElem.appendChild(wordDiv);
             }
@@ -194,14 +194,43 @@ function loadText(text)
 }
 function setDictionaryPage(word)
 {
-    let wordObj = wordDict[word];
-    if(typeof wordObj !== "undefined")
+    let wordList = wordDict[word];
+    if(typeof wordList === "undefined")
     {
-        document.getElementById("dictBox").setAttribute("style", "display:block;");
-        document.getElementById("dictWord").innerHTML = "Word: " + word;
-        document.getElementById("dictPinyin").innerHTML = "Pinyin: " + wordObj.pinyin;
-        document.getElementById("dictDefinition").innerHTML = "Definition: " + wordObj.definition;
-        document.getElementById("dictHsk").innerHTML = "HSK: " + wordObj.hsk;
+        return;
+    }
+    let dictBox = document.getElementById("dictBox");
+    dictBox.setAttribute("style", "display:block;");
+    let dictBoxContent = document.getElementById("dictBoxContent");
+    dictBoxContent.innerHTML = "";
+    for(let i = 0; i < wordList.length; i++)
+    {
+        let wordObj = wordList[i];
+        if(typeof wordObj !== "undefined")
+        {
+            let dictElem = document.createElement("div");
+            let dictWordElem = document.createElement("div");
+            let dictWordTextElem = document.createElement("p");
+            dictWordTextElem.innerHTML = "Word: " + word;
+            dictWordElem.appendChild(dictWordTextElem);
+            let dictPinyinElem = document.createElement("div");
+            let dictPinyinTextElem = document.createElement("p");
+            dictPinyinTextElem.innerHTML = "Pinyin: " + wordObj.pinyin;
+            dictPinyinElem.appendChild(dictPinyinTextElem);
+            let dictDefElem = document.createElement("div");
+            let dictDefTextElem = document.createElement("p");
+            dictDefTextElem.innerHTML = "Definition: " + wordObj.definition;
+            dictDefElem.appendChild(dictDefTextElem);
+            let dictHskElem = document.createElement("div");
+            let dictHskTextElem = document.createElement("p");
+            dictHskTextElem.innerHTML = "HSK: " + wordList.hsk;
+            dictHskElem.appendChild(dictHskTextElem);
+            dictElem.appendChild(dictWordElem);
+            dictElem.appendChild(dictPinyinElem);
+            dictElem.appendChild(dictDefElem);
+            dictElem.appendChild(dictHskElem);
+            dictBoxContent.appendChild(dictElem);
+        }
     }
 }
 window.addEventListener("load", () => {
@@ -221,7 +250,7 @@ window.addEventListener("load", () => {
                 else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
                 {
                     let hskVal = parseInt(dataObj.name.substring(3));
-                    if(isNaN(hskVal))
+                    if(isNaN(hskVal) || hskVal == 0)
                     {
                         hskVal = "none";
                     }
@@ -241,8 +270,19 @@ window.addEventListener("load", () => {
                     for(let key in dataObj.column)
                     {
                         let item = dataObj.column[key];
-                        item.hsk = hskVal;
-                        wordDict[key] = item;
+                        if(wordDict.hasOwnProperty(key))
+                        {
+                            wordDict[key].push(...item);
+                            if(wordDict[key].hsk < hskVal || typeof wordDict[key].hsk !== "number")
+                            {
+                                wordDict[key].hsk = hskVal;
+                            }
+                        }
+                        else
+                        {
+                            item.hsk = hskVal;
+                            wordDict[key] = item;
+                        }
                         i++;
                         if(i > len * (currentPos / maxPos))
                         {
@@ -328,12 +368,16 @@ window.addEventListener("load", () => {
         let pinyin = numberedPinyinToTonedPinyin(inp);
         //find the corresponding dict values
         let results = [];
-        for(let word in wordDict)
+        for(let key in wordDict)
         {
-            let wordData = wordDict[word];
-            if(wordData.pinyin == pinyin)
+            let wordList = wordDict[key];
+            for(let i = 0; i < wordList.length; i++)
             {
-                results.push(wordData);
+                let wordData = wordList[i];
+                if(wordData.pinyin == pinyin)
+                {
+                    results.push(wordData);
+                }
             }
         }
         //output them to the user

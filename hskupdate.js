@@ -85,12 +85,13 @@ function parseu8File(filename)
         let chars = parts[1].replace("\ufeff", "");
         let pinyin = parts[2];
         let def = parts[3];
-        dict.push({
+        let dictItem = {
             word: chars,
             pinyin: pinyin,
             definition: def,
             hsk: 0
-        });
+        };
+        dict.push(dictItem);
     }
     return dict;
 }
@@ -155,7 +156,7 @@ function sendHSK(num)
             type: "set",
             column: "hsk" + num,
             row: key,
-            item: value
+            item: [value]
         }));
     }
     //console.log(hskDict);
@@ -165,18 +166,39 @@ function sendFullDict()
 {
     let dict = parseu8File("cedict_ts.u8");
     let count = 0;
+    let dictObj = {};
     for(let i = 0; i < dict.length; i++)
     {
         let value = dict[i];
         value.pinyin = numberedPinyinToTonedPinyin(value.pinyin);
+        if(dictObj.hasOwnProperty(value.word))
+        {
+            let dictItem = dictObj[value.word];
+            if(Array.isArray(dictItem))
+            {
+                dictItem.push(value);
+            }
+            else
+            {
+                dictObj[value.word] = [dictItem, value];
+            }
+        }
+        else
+        {
+            dictObj[value.word] = [value];
+        }
+        count++;
+    }
+    for(let key in dictObj)
+    {
+        let dictItem = dictObj[key];
         socket.send(JSON.stringify({
             type: "set",
             column: "other",
-            row: value.word,
-            item: value,
+            row: key,
+            item: dictItem,
             hsk: 0
         }));
-        count++;
     }
     console.log("sent full dict, " + dict.length + ", " + count);
 }
