@@ -289,6 +289,11 @@ window.addEventListener("load", () => {
         }));
         addSaveToList(name, text);
     });
+    let textLoadButton = document.getElementById("textLoadButton");
+    textLoadButton.addEventListener("click", () => {
+        let text = userInputBox.value;
+        loadText(text);
+    });
     defWordInput = document.getElementById("inputDefName");
     defPinyinInput = document.getElementById("inputDefPinyin");
     defDefInput = document.getElementById("inputDefDefinition");

@@ -47,39 +47,39 @@ function main()
             switch(dataObj.type)
             {
                 case "set":
+                {
+                    let column = dataObj.column;
+                    let row = dataObj.row;
+                    let itemObj = dataObj.item;
+                    if(!database.hasOwnProperty(column))
                     {
-                        let column = dataObj.column;
-                        let row = dataObj.row;
-                        let itemObj = dataObj.item;
-                        if(!database.hasOwnProperty(column))
-                        {
-                            database[column] = {}
-                        }
-                        database[column][row] = itemObj;
-                        changesMade = true;
-                        break;
+                        database[column] = {}
                     }
+                    database[column][row] = itemObj;
+                    changesMade = true;
+                    break;
+                }
                 case "request":
+                {
+                    let column = dataObj.column;
+                    let columnData = {};
+                    if(database.hasOwnProperty(column))
                     {
-                        let column = dataObj.column;
-                        let columnData = {};
-                        if(database.hasOwnProperty(column))
-                        {
-                            columnData = database[column];
-                        }
-                        socket.send(JSON.stringify({
-                            type: "column",
-                            name: column,
-                            column: columnData
-                        }));
-                        break;
+                        columnData = database[column];
                     }
+                    socket.send(JSON.stringify({
+                        type: "column",
+                        name: column,
+                        column: columnData
+                    }));
+                    break;
+                }
                 case "reset":
-                    {
-                        database = {};
-                        changesMade = true;
-                        break;
-                    }
+                {
+                    database = {};
+                    changesMade = true;
+                    break;
+                }
             }
         });
     });

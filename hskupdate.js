@@ -120,7 +120,8 @@ function parseu8Line(line)
     let endThirdPos = line.indexOf("]");
     let thirdItem = line.substring(thirdPos + 1, endThirdPos);
     let fourthPos = line.indexOf("/")
-    let fourthEndPos = line.substring(fourthPos + 1).indexOf("/") + fourthPos + 1;
+    // fourthEndPos = line.substring(fourthPos + 1).indexOf("/") + fourthPos + 1;
+    let fourthEndPos = line.lastIndexOf("/");
     let fourthItem = line.substring(fourthPos + 1, fourthEndPos);
     return [firstItem, secondItem, thirdItem, fourthItem];
 }
