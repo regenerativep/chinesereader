@@ -181,7 +181,7 @@ function loadText(text)
                     };
                 })(word));
                 zitext.innerHTML = word;
-                pinyintext.innerHTML = wordDict[word][0].pinyin;
+                pinyintext.innerHTML = wordDict[word][wordDict[word].length - 1].pinyin;
                 lastWordIsDef = true;
                 lineElem.appendChild(wordDiv);
             }
