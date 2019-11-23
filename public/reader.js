@@ -234,86 +234,78 @@ function setDictionaryPage(word)
     }
 }
 window.addEventListener("load", () => {
-    socket = new WebSocket("ws://127.0.0.1:5524");
-    socket.onmessage = (ev) => {
-        var dataObj = JSON.parse(ev.data);
-        switch(dataObj.type)
+    socket = io();
+    socket.on("column", (data) => {
+        let dataObj = JSON.parse(data);
+        if(dataObj.name == "saves")
         {
-            case "column":
-                if(dataObj.name == "saves")
-                {
-                    for(let key in dataObj.column)
-                    {
-                        addSaveToList(key, dataObj.column[key]);
-                    }
-                }
-                else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
-                {
-                    let hskVal = parseInt(dataObj.name.substring(3));
-                    if(isNaN(hskVal) || hskVal == 0)
-                    {
-                        hskVal = "none";
-                    }
-                    console.log("got data for " + dataObj.name);
-                    let currentPos = 0;
-                    let maxPos = 4;
-                    let len = {
-                        hsk1: 150,
-                        hsk2: 151,
-                        hsk3: 300,
-                        hsk4: 600,
-                        hsk5: 1300,
-                        hsk6: 2500,
-                        other: 117588-31
-                    }[dataObj.name];
-                    let i = 0;
-                    for(let key in dataObj.column)
-                    {
-                        let item = dataObj.column[key];
-                        if(wordDict.hasOwnProperty(key))
-                        {
-                            wordDict[key].push(...item);
-                            if(wordDict[key].hsk < hskVal || typeof wordDict[key].hsk !== "number")
-                            {
-                                wordDict[key].hsk = hskVal;
-                            }
-                        }
-                        else
-                        {
-                            item.hsk = hskVal;
-                            wordDict[key] = item;
-                        }
-                        i++;
-                        if(i > len * (currentPos / maxPos))
-                        {
-                            currentPos++;
-                            console.log(((currentPos / maxPos) * 100) + "%");
-                        }
-                    }
-                    if(dataObj.name == "other")
-                    {
-                        for(let i = 1; i <= 6; i++)
-                        {
-                            socket.send(JSON.stringify({
-                                type: "request",
-                                column: "hsk" + i
-                            }));
-                        }
-                    }
-                }
-                break;
+            for(let key in dataObj.column)
+            {
+                addSaveToList(key, dataObj.column[key]);
+            }
         }
-    };
-    socket.onopen = (ev) => {
-        socket.send(JSON.stringify({
-            type: "request",
+        else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
+        {
+            let hskVal = parseInt(dataObj.name.substring(3));
+            if(isNaN(hskVal) || hskVal == 0)
+            {
+                hskVal = "none";
+            }
+            console.log("got data for " + dataObj.name);
+            let currentPos = 0;
+            let maxPos = 4;
+            let len = {
+                hsk1: 150,
+                hsk2: 151,
+                hsk3: 300,
+                hsk4: 600,
+                hsk5: 1300,
+                hsk6: 2500,
+                other: 117588-31
+            }[dataObj.name];
+            let i = 0;
+            for(let key in dataObj.column)
+            {
+                let item = dataObj.column[key];
+                if(wordDict.hasOwnProperty(key))
+                {
+                    wordDict[key].push(...item);
+                    if(wordDict[key].hsk < hskVal || typeof wordDict[key].hsk !== "number")
+                    {
+                        wordDict[key].hsk = hskVal;
+                    }
+                }
+                else
+                {
+                    item.hsk = hskVal;
+                    wordDict[key] = item;
+                }
+                i++;
+                if(i > len * (currentPos / maxPos))
+                {
+                    currentPos++;
+                    console.log(((currentPos / maxPos) * 100) + "%");
+                }
+            }
+            if(dataObj.name == "other")
+            {
+                for(let i = 1; i <= 6; i++)
+                {
+                    socket.emit("request", {
+                        column: "hsk" + i
+                    });
+                }
+            }
+        }
+    });
+    socket.on("connect", () => {
+        socket.send("request", {
             column: "other"
-        }));
-        socket.send(JSON.stringify({
-            type: "request",
+        });
+        socket.send("request", {
             column: "saves"
-        }));
-    };
+        });
+    });
     userInputBox = document.getElementById("userInput");
     saveNameInputBox = document.getElementById("saveNameInput");
     saveListDiv = document.getElementById("saveList");

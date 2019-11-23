@@ -1,11 +1,12 @@
 var fs = require("fs");
 var express = require("express");
-var WebSocket = require("ws");
+var http = require("http");
+var sio = require("socket.io");
 
 var database;
 var changesMade = false;
 var databaseFileName = "./database.json";
-var socketServer, webServer;
+var expressApp, httpServer, ioServer;
 function loadDatabase()
 {
     if(fs.existsSync(databaseFileName))
@@ -32,17 +33,16 @@ function main()
     loadDatabase();
     setInterval(saveDatabase, 10000);
 
-    webServer = express();
-    webServer.use(express.static("public"));
-    let port = 8000;
-    webServer.listen(port, () => {console.log("server listening on port " + port);});
+    expressApp = express();
+    httpServer = http.createServer(expressApp);
+    ioServer = sio(httpServer);
 
-    socketServer = new WebSocket.Server({
-        port: 5524
-    });
-    socketServer.on("error", (err) => {console.log("something went wrong with ws server");});
-    socketServer.on("connection", (socket, req) => {
-        socket.on('message', (data) => {
+    expressApp.use(express.static("public"));
+    ioServer.on("connection", (socket) => {
+        console.log("received connection from a client");
+        socket.on("disconnect", () => { console.log("closed connection to a client"); })
+        socket.on("set", )
+        socket.on('message', (data) => { //todo here
             let dataObj = JSON.parse(data);
             switch(dataObj.type)
             {
@@ -82,6 +82,10 @@ function main()
                 }
             }
         });
+    });
+    let port = 8000;
+    httpServer.listen(port, () => {
+        console.log("server listening on port " + port);
     });
 }
 main();
