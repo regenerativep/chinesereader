@@ -41,46 +41,32 @@ function main()
     ioServer.on("connection", (socket) => {
         console.log("received connection from a client");
         socket.on("disconnect", () => { console.log("closed connection to a client"); })
-        socket.on("set", )
-        socket.on('message', (data) => { //todo here
-            let dataObj = JSON.parse(data);
-            switch(dataObj.type)
+        socket.on("set", (dataObj) => {
+            let column = dataObj.column;
+            let row = dataObj.row;
+            let itemObj = dataObj.item;
+            if(!database.hasOwnProperty(column))
             {
-                case "set":
-                {
-                    let column = dataObj.column;
-                    let row = dataObj.row;
-                    let itemObj = dataObj.item;
-                    if(!database.hasOwnProperty(column))
-                    {
-                        database[column] = {}
-                    }
-                    database[column][row] = itemObj;
-                    changesMade = true;
-                    break;
-                }
-                case "request":
-                {
-                    let column = dataObj.column;
-                    let columnData = {};
-                    if(database.hasOwnProperty(column))
-                    {
-                        columnData = database[column];
-                    }
-                    socket.send(JSON.stringify({
-                        type: "column",
-                        name: column,
-                        column: columnData
-                    }));
-                    break;
-                }
-                case "reset":
-                {
-                    database = {};
-                    changesMade = true;
-                    break;
-                }
+                database[column] = {}
             }
+            database[column][row] = itemObj;
+            changesMade = true;
+        });
+        socket.on("request", (dataObj) => {
+            let column = dataObj.column;
+            let columnData = {};
+            if(database.hasOwnProperty(column))
+            {
+                columnData = database[column];
+            }
+            socket.emit("column", {
+                name: column,
+                column: columnData
+            });
+        });
+        socket.on("reset", () => {
+            database = {};
+            changesMade = true;
         });
     });
     let port = 8000;

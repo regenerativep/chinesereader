@@ -235,8 +235,7 @@ function setDictionaryPage(word)
 }
 window.addEventListener("load", () => {
     socket = io();
-    socket.on("column", (data) => {
-        let dataObj = JSON.parse(data);
+    socket.on("column", (dataObj) => {
         if(dataObj.name == "saves")
         {
             for(let key in dataObj.column)
@@ -299,10 +298,10 @@ window.addEventListener("load", () => {
         }
     });
     socket.on("connect", () => {
-        socket.send("request", {
+        socket.emit("request", {
             column: "other"
         });
-        socket.send("request", {
+        socket.emit("request", {
             column: "saves"
         });
     });
@@ -313,12 +312,11 @@ window.addEventListener("load", () => {
     submitButton.addEventListener("click", () => {
         let name = saveNameInputBox.value;
         let text = userInputBox.value;
-        socket.send(JSON.stringify({
-            type: "set",
+        socket.emit("set", {
             column: "saves",
             row: name,
             item: text
-        }));
+        });
         addSaveToList(name, text);
     });
     let textLoadButton = document.getElementById("textLoadButton");
@@ -341,12 +339,11 @@ window.addEventListener("load", () => {
             hsk: 0
         };
         wordDict[word] = defObj;
-        socket.send(JSON.stringify({
-            type: "set",
+        socket.emit("set", {
             column: "other",
             row: word,
             item: defObj
-        }));
+        });
     });
     lookupCharInp = document.getElementById("inputLookupCharacters");
     lookupPinyinInp = document.getElementById("inputLookupPinyin");
