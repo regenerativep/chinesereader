@@ -1,5 +1,5 @@
 var fs = require("fs");
-var WebSocket = require("ws");
+var sio = require("socket.io-client");
 
 var socket;
 var vowels = ["iu", "a", "e", "i", "o", "u"];
@@ -152,12 +152,11 @@ function sendHSK(num)
     for(let key in hskDict)
     {
         let value = hskDict[key];
-        socket.send(JSON.stringify({
-            type: "set",
+        socket.emit("set", {
             column: "hsk" + num,
             row: key,
             item: [value]
-        }));
+        });
     }
     //console.log(hskDict);
     console.log("sent hsk " + num);
@@ -189,41 +188,22 @@ function sendFullDict()
         }
         count++;
     }
+    console.log("loaded full dict");
     for(let key in dictObj)
     {
         let dictItem = dictObj[key];
-        socket.send(JSON.stringify({
-            type: "set",
+        socket.emit("set", {
             column: "other",
             row: key,
             item: dictItem,
             hsk: 0
-        }));
+        });
     }
     console.log("sent full dict, " + dict.length + ", " + count);
 }
-function receiveColumn(column)
-{
-    socket.on("open", () => {
-        socket.send(JSON.stringify({
-            type: "request",
-            column: column
-        }));
-    });
-    socket.on("message", (data) => {
-        var dataObj = JSON.parse(data);
-        let columnData = dataObj.column;
-        for(let key in columnData)
-        {
-            console.log(key);
-        }
-    })
-}
 function reset()
 {
-    socket.send(JSON.stringify({
-        type: "reset"
-    }));
+    socket.emit("reset");
     sendFullDict();
     sendHSK("1");
     sendHSK("2");
@@ -234,17 +214,11 @@ function reset()
 }
 function main()
 {
-    socket = new WebSocket("ws://127.0.0.1:5524");
-    socket.on("open", () => {
+    socket = sio("http://127.0.0.1:8000");//new WebSocket("ws://127.0.0.1:5524");
+    console.log("connecting");
+    socket.on("connect", () => {
+        console.log("connected to server");
         reset();
-        /*sendHSK("1");
-        sendHSK("2");
-        sendHSK("3");
-        sendHSK("4");
-        sendHSK("5");
-        sendHSK("6");*/
-        // receiveColumn("hsk1");
-        // receiveColumn("hsk2");
     });
 }
 main();
