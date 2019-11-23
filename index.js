@@ -2,6 +2,7 @@ var fs = require("fs");
 var express = require("express");
 var http = require("http");
 var sio = require("socket.io");
+var port = require("./public/port.js");
 
 var database;
 var changesMade = false;
@@ -69,7 +70,6 @@ function main()
             changesMade = true;
         });
     });
-    let port = 8000;
     httpServer.listen(port, () => {
         console.log("server listening on port " + port);
     });

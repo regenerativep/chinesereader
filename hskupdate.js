@@ -1,5 +1,6 @@
 var fs = require("fs");
 var sio = require("socket.io-client");
+var port = require("./public/port.js");
 
 var socket;
 var vowels = ["iu", "a", "e", "i", "o", "u"];
@@ -214,7 +215,7 @@ function reset()
 }
 function main()
 {
-    socket = sio("http://127.0.0.1:8000");//new WebSocket("ws://127.0.0.1:5524");
+    socket = sio("http://127.0.0.1:" + port);
     console.log("connecting");
     socket.on("connect", () => {
         console.log("connected to server");
