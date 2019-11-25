@@ -339,7 +339,7 @@ window.addEventListener("load", () => {
                     }
                 }
             }
-            if(dataObj.name == "other")
+            if(!isPersonal && dataObj.name == "other")
             {
                 for(let i = 1; i <= 6; i++)
                 {
