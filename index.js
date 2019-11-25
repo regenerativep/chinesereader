@@ -3,6 +3,7 @@ var express = require("express");
 var http = require("http");
 var sio = require("socket.io");
 var port = require("./public/port.js");
+var hskupdate = require("./hskupdate.js");
 
 var database;
 var changesMade = false;
@@ -17,6 +18,7 @@ function loadDatabase()
     else
     {
         database = {};
+        regenerateDatabase();
     }
 }
 function saveDatabase()
@@ -28,6 +30,18 @@ function saveDatabase()
         console.log("saved database");
         changesMade = false;
     }
+}
+function regenerateDatabase()
+{
+    let hskDicts = hskupdate.loadHSK();
+    let fullDict = hskupdate.loadFullDict();
+    for(let i = 0; i < hskDicts.length; i++)
+    {
+        let hskDict = hskDicts[i];
+        database["hsk" + (i + 1)] = hskDict;
+    }
+    database["other"] = fullDict;
+    changesMade = true;
 }
 function main()
 {
@@ -43,7 +57,8 @@ function main()
         console.log("received connection from a client");
         socket.on("disconnect", () => { console.log("closed connection to a client"); })
         socket.on("set", (dataObj) => {
-            let column = dataObj.column;
+            let user = dataObj.username;
+            let column = user + "_" + dataObj.column;
             let row = dataObj.row;
             let itemObj = dataObj.item;
             if(!database.hasOwnProperty(column))
@@ -56,6 +71,12 @@ function main()
         socket.on("request", (dataObj) => {
             let column = dataObj.column;
             let columnData = {};
+            let username = null;
+            if(dataObj.hasOwnProperty("username"))
+            {
+                username = dataObj["username"];
+                column = username + "_" + column;
+            }
             if(database.hasOwnProperty(column))
             {
                 columnData = database[column];

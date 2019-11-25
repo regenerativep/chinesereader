@@ -2,7 +2,6 @@
 <html>
     <head>
         <script src="./socket.io.js"></script>
-        <!--<script src="./port.js"></script>-->
         <script src="./reader.js"></script>
         <style>
             body {
@@ -113,15 +112,24 @@
         </style>
     </head>
     <body>
-        <p class="title">Chinese Text Reading Assistant</p>
+        <div>
+            <div>
+                <p class="title">Chinese Text Reading Assistant</p>
+            </div>
+            <div class="inputArea">
+                <p>Current account: <span style="color:blue;" id="accountNameOutput"><span style="color:red;">NOT LOGGED IN</span></p>
+                <input type="text" id="inputAccountName">
+                <input type="button" value="Set account" id="setAccountButton">
+            </div>
+        </div>
         <div>
             <div class="inputArea">
                 <p>Input text below</p>
                 <textarea id="userInput" rows="10" cols="60"></textarea><br>
                 <p style="display:inline-block;">Save name</p>
-                <input type="text" id="saveNameInput" style="display:inline-block;">
-                <input type="button" value="Save" id="textSubmitButton">
-                <input type="button" value="Load" id="textLoadButton">
+                <input type="text" id="saveNameInput" style="display:inline-block;"><br>
+                <input type="button" value="Save text to account" id="textSubmitButton">
+                <input type="button" value="Load text to reader" id="textLoadButton">
             </div>
             <div class="inputArea">
                 <p>Input new dictionary definition</p>

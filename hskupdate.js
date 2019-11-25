@@ -1,6 +1,4 @@
 var fs = require("fs");
-var sio = require("socket.io-client");
-var port = require("./public/port.js");
 
 var socket;
 var vowels = ["iu", "a", "e", "i", "o", "u"];
@@ -121,8 +119,7 @@ function parseu8Line(line)
     let thirdPos = line.indexOf("[");
     let endThirdPos = line.indexOf("]");
     let thirdItem = line.substring(thirdPos + 1, endThirdPos);
-    let fourthPos = line.indexOf("/")
-    // fourthEndPos = line.substring(fourthPos + 1).indexOf("/") + fourthPos + 1;
+    let fourthPos = line.indexOf("/");
     let fourthEndPos = line.lastIndexOf("/");
     let fourthItem = line.substring(fourthPos + 1, fourthEndPos);
     return [firstItem, secondItem, thirdItem, fourthItem];
@@ -139,30 +136,26 @@ function parseTsvFile(filename)
         let chars = parts[0].replace("\ufeff", "");
         let pinyin = parts[3];
         let def = parts[4];
-        dict[chars] = {
+        dict[chars] = [{
             word: chars,
             pinyin: pinyin,
             definition: def
-        };
+        }];
     }
     return dict;
 }
-function sendHSK(num)
+function loadHSK()
 {
-    let hskDict = parseTsvFile("HSK Official With Definitions 2012 L" + num + ".txt");
-    for(let key in hskDict)
+    let dicts = [];
+    for(let i = 1; i <= 6; i++)
     {
-        let value = hskDict[key];
-        socket.emit("set", {
-            column: "hsk" + num,
-            row: key,
-            item: [value]
-        });
+        let hskDict = parseTsvFile("HSK Official With Definitions 2012 L" + i + ".txt");
+        dicts.push(hskDict);
     }
-    //console.log(hskDict);
-    console.log("sent hsk " + num);
+    console.log("loaded hsk");
+    return dicts;
 }
-function sendFullDict()
+function loadFullDict()
 {
     let dict = parseu8File("cedict_ts.u8");
     let count = 0;
@@ -190,36 +183,14 @@ function sendFullDict()
         count++;
     }
     console.log("loaded full dict");
-    for(let key in dictObj)
-    {
-        let dictItem = dictObj[key];
-        socket.emit("set", {
-            column: "other",
-            row: key,
-            item: dictItem,
-            hsk: 0
-        });
-    }
-    console.log("sent full dict, " + dict.length + ", " + count);
+    return dictObj;
 }
-function reset()
-{
-    socket.emit("reset");
-    sendFullDict();
-    sendHSK("1");
-    sendHSK("2");
-    sendHSK("3");
-    sendHSK("4");
-    sendHSK("5");
-    sendHSK("6");
-}
-function main()
-{
-    socket = sio("http://127.0.0.1:" + port);
-    console.log("connecting");
-    socket.on("connect", () => {
-        console.log("connected to server");
-        reset();
-    });
-}
-main();
+module.exports = {
+    loadFullDict: loadFullDict,
+    loadHSK: loadHSK,
+    getLineEnding: getLineEnding,
+    numberedPinyinToTonedPinyin: numberedPinyinToTonedPinyin,
+    getLowestVowel: getLowestVowel,
+    parseu8File: parseu8File,
+    parseTsvFile: parseTsvFile
+};
