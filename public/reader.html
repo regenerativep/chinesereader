@@ -13,6 +13,9 @@
             body div {
                 text-overflow: clip;
             }
+            p {
+                margin: 2px;
+            }
             .dictbox {
                 outline-color: black;
                 outline-width: 2px;
@@ -82,6 +85,12 @@
                 font-size: 30pt;
                 text-align: center;
             }
+            .sectitle {
+                font-size: 21pt;
+            }
+            .subtitle {
+                font-size: 16pt;
+            }
             .word {
                 display: inline-block;
                 padding-left: 0.1em;
@@ -113,37 +122,37 @@
     </head>
     <body>
         <div>
-            <div>
+            <div class="inputArea">
                 <p class="title">Chinese Text Reading Assistant</p>
             </div>
             <div class="inputArea">
-                <p>Current account: <span style="color:blue;" id="accountNameOutput"><span style="color:red;">NOT LOGGED IN</span></p>
+                <p class="sectitle">Current account: <span style="color:blue;" id="accountNameOutput"><span style="color:red;">NOT LOGGED IN</span></p>
                 <input type="text" id="inputAccountName">
                 <input type="button" value="Set account" id="setAccountButton">
             </div>
         </div>
         <div>
             <div class="inputArea">
-                <p>Input text below</p>
+                <p class="sectitle">Text</p>
                 <textarea id="userInput" rows="10" cols="60"></textarea><br>
-                <p style="display:inline-block;">Save name</p>
+                <p style="display:inline-block;" class="subtitle">Save name</p>
                 <input type="text" id="saveNameInput" style="display:inline-block;"><br>
                 <input type="button" value="Save text to account" id="textSubmitButton">
                 <input type="button" value="Load text to reader" id="textLoadButton">
             </div>
             <div class="inputArea">
-                <p>Input new dictionary definition</p>
+                <p class="sectitle">New definition</p>
                 <input type="text" id="inputDefName" placeholder="word">
                 <input type="text" id="inputDefPinyin" placeholder="pinyin"><br>
                 <textarea id="inputDefDefinition" rows="4" cols="50" placeholder="definition"></textarea><br>
                 <input type="button" value="Define" id="inputDefButton">
             </div>
             <div class="inputArea">
-                <p>Lookup word</p>
-                <p>Characters</p>
+                <p class="sectitle">Lookup word</p>
+                <p class="subtitle">Characters</p>
                 <input type="text" id="inputLookupCharacters" placeholder="characters">
                 <input type="button" id="inputLookupCharactersButton" value="Look up">
-                <p>Pinyin (separate each by a space ex. "ni3 hao3")</p>
+                <p class="subtitle">Pinyin (separate each by a space ex. "ni3 hao3")</p>
                 <input type="text" id="inputLookupPinyin" placeholder="pinyin">
                 <input type="button" id="inputLookupPinyinButton" value="Look up">
                 <div style="overflow:scroll;height:6em;">
@@ -152,7 +161,7 @@
             </div>
         </div>
         <div id="saveList" class="savelist">
-            <p>Saved texts</p><p id="loadingOutput"></p>
+            <p class="sectitle">Saved texts</p><p class="subtitle" id="loadingOutput"></p>
         </div>
         <hr>
         <div>
