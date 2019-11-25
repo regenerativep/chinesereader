@@ -351,6 +351,7 @@ window.addEventListener("load", () => {
         }
     });
     socket.on("connect", () => {
+        wordDict = {};
         socket.emit("request", {
             column: "other"
         });
