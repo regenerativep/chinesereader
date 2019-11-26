@@ -23,14 +23,16 @@ function addSaveToList(name, text)
     saveListDiv.appendChild(elem);
     saveNameList[name] = text;
 }
-var vowels = ["iu", "a", "e", "i", "o", "u"];
+var vowels = ["iu", "a", "e", "i", "o", "u", "ü"];
 var tonedVowels = [
-    ["iū", "ā", "ē", "ī", "ō", "ū"],
-    ["iú", "á", "é", "í", "ó", "ú"],
-    ["iǔ", "ǎ", "ě", "ǐ", "ǒ", "ǔ"],
-    ["iù", "à", "è", "ì​", "ò", "ù"],
-    ["iu", "a", "e", "i", "o", "u"]
+    ["iū", "ā", "ē", "ī", "ō", "ū", "ǘ"],
+    ["iú", "á", "é", "í", "ó", "ú", "ǘ"],
+    ["iǔ", "ǎ", "ě", "ǐ", "ǒ", "ǔ", "ǚ"],
+    ["iù", "à", "è", "ì​", "ò", "ù", "ǜ"],
+    ["iu", "a", "e", "i", "o", "u", "ü"]
 ];
+var uuwo = ["ū:", "ú:", "ǔ:", "ù:", "u:", "v"];
+var uuw = ["ǘ", "ǘ", "ǚ", "ǜ", "ü", "ü"]
 function getLowestVowel(字)
 {
     for(let i = 0; i < vowels.length; i++)
@@ -49,6 +51,10 @@ function numberedPinyinToTonedPinyin(numbered)
     for(let i = 0; i < parts.length; i++)
     {
         let part = parts[i];
+        for(let j = 0; j < uuwo.length; j++)
+        {
+            part = part.replace(new RegExp(uuwo[j], "g"), uuw[j]);
+        }
         let tone = parseInt(part.substring(part.length - 1)) - 1;
         if(isNaN(tone))
         {
@@ -118,17 +124,15 @@ function updateLoading(percent)
 }
 function loadText(text)
 {
+    userInputBox.value = text;
     let outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
     let lineEnding = getLineEnding(text);
-    console.log({e:lineEnding})
-    console.log({e:text});
     let lines = text.split(lineEnding);
-    console.log(lines);
     for(let i = 0; i < lines.length; i++)
     {
         let line = lines[i];
-        console.log({i:i,e:line})
+        console.log("line " + (i + 1) + ": " + line);
         let lineElem = document.createElement("div");
         //find all of the words
         let lastWordDiv = null;
