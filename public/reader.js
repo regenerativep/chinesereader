@@ -14,7 +14,6 @@ function addSaveToList(name, text)
     textElem.innerHTML = name;
     let elem = document.createElement("div");
     elem.addEventListener("click", () => {
-        updateLoading("Loading");
         window.setTimeout(() => {
             loadText(text);
         }, 16);
@@ -91,7 +90,8 @@ function updateLoading(percent)
     {
         loadingElement.innerHTML = "(Loading: " + Math.floor(percent * 100) + "%)";
     }
-}function getLineEnding(text)
+}
+function getLineEnding(text)
 {
     let lineEnding = "";
     let foundR = false;
@@ -122,17 +122,22 @@ function updateLoading(percent)
     }
     return lineEnding;
 }
+var lines, lineEnding, outputTextElem, lineInd;
 function loadText(text)
 {
+    updateLoading("Loading");
     userInputBox.value = text;
-    let outputTextElem = document.getElementById("outputText");
+    outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
-    let lineEnding = getLineEnding(text);
-    let lines = text.split(lineEnding);
-    for(let i = 0; i < lines.length; i++)
+    lineEnding = getLineEnding(text);
+    lines = text.split(lineEnding);
+    lineInd = 0;
+    function runLine()
     {
-        let line = lines[i];
-        console.log("line " + (i + 1) + ": " + line);
+        let line = lines[0];
+        lines.splice(0, 1);
+        lineInd++;
+        console.log("line " + (lineInd + 1) + ": " + line);
         let lineElem = document.createElement("div");
         //find all of the words
         let lastWordDiv = null;
@@ -203,8 +208,16 @@ function loadText(text)
             lastWordDiv = wordDiv;
         }
         outputTextElem.appendChild(lineElem);
+        if(lines.length > 0)
+        {
+            window.setTimeout(() => { runLine(); }, 0);
+        }
+        else
+        {
+            updateLoading(null);
+        }
     }
-    updateLoading(null);
+    runLine();
 }
 function setDictionaryPage(word)
 {
