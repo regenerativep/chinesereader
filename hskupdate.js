@@ -1,6 +1,5 @@
 var fs = require("fs");
 
-var socket;
 var vowels = ["iu", "a", "e", "i", "o", "u"];
 var tonedVowels = [
     ["iū", "ā", "ē", "ī", "ō", "ū"],
@@ -147,16 +146,19 @@ function parseTsvFile(filename)
 function loadHSK()
 {
     let dicts = [];
+    console.log("loading hsk...");
     for(let i = 1; i <= 6; i++)
     {
         let hskDict = parseTsvFile("HSK Official With Definitions 2012 L" + i + ".txt");
         dicts.push(hskDict);
+        console.log("loaded hsk " + i);
     }
-    console.log("loaded hsk");
+    console.log("loaded all hsk");
     return dicts;
 }
 function loadFullDict()
 {
+    console.log("loading full dict");
     let dict = parseu8File("cedict_ts.u8");
     let count = 0;
     let dictObj = {};

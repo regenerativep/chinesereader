@@ -13,11 +13,12 @@ function loadDatabase()
 {
     if(fs.existsSync(databaseFileName))
     {
+        console.log("loading database...");
         database = JSON.parse(fs.readFileSync(databaseFileName, "utf8"));
+        console.log("loaded database");
     }
     else
     {
-        database = {};
         regenerateDatabase();
     }
 }
@@ -33,6 +34,7 @@ function saveDatabase()
 }
 function regenerateDatabase()
 {
+    console.log("regenerating database");
     let hskDicts = hskupdate.loadHSK();
     let fullDict = hskupdate.loadFullDict();
     for(let i = 0; i < hskDicts.length; i++)
