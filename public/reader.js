@@ -14,7 +14,6 @@ function addSaveToList(name, text)
     textElem.innerHTML = name;
     let elem = document.createElement("div");
     elem.addEventListener("click", () => {
-        updateLoading("Loading");
         window.setTimeout(() => {
             loadText(text);
         }, 16);
@@ -23,14 +22,16 @@ function addSaveToList(name, text)
     saveListDiv.appendChild(elem);
     saveNameList[name] = text;
 }
-var vowels = ["iu", "a", "e", "i", "o", "u"];
+var vowels = ["iu", "a", "e", "i", "o", "u", "ü"];
 var tonedVowels = [
-    ["iū", "ā", "ē", "ī", "ō", "ū"],
-    ["iú", "á", "é", "í", "ó", "ú"],
-    ["iǔ", "ǎ", "ě", "ǐ", "ǒ", "ǔ"],
-    ["iù", "à", "è", "ì​", "ò", "ù"],
-    ["iu", "a", "e", "i", "o", "u"]
+    ["iū", "ā", "ē", "ī", "ō", "ū", "ǘ"],
+    ["iú", "á", "é", "í", "ó", "ú", "ǘ"],
+    ["iǔ", "ǎ", "ě", "ǐ", "ǒ", "ǔ", "ǚ"],
+    ["iù", "à", "è", "ì​", "ò", "ù", "ǜ"],
+    ["iu", "a", "e", "i", "o", "u", "ü"]
 ];
+var uuwo = ["ū:", "ú:", "ǔ:", "ù:", "u:", "v"];
+var uuw = ["ǘ", "ǘ", "ǚ", "ǜ", "ü", "ü"]
 function getLowestVowel(字)
 {
     for(let i = 0; i < vowels.length; i++)
@@ -49,6 +50,10 @@ function numberedPinyinToTonedPinyin(numbered)
     for(let i = 0; i < parts.length; i++)
     {
         let part = parts[i];
+        for(let j = 0; j < uuwo.length; j++)
+        {
+            part = part.replace(new RegExp(uuwo[j], "g"), uuw[j]);
+        }
         let tone = parseInt(part.substring(part.length - 1)) - 1;
         if(isNaN(tone))
         {
@@ -85,7 +90,8 @@ function updateLoading(percent)
     {
         loadingElement.innerHTML = "(Loading: " + Math.floor(percent * 100) + "%)";
     }
-}function getLineEnding(text)
+}
+function getLineEnding(text)
 {
     let lineEnding = "";
     let foundR = false;
@@ -116,19 +122,22 @@ function updateLoading(percent)
     }
     return lineEnding;
 }
+var lines, lineEnding, outputTextElem, lineInd;
 function loadText(text)
 {
-    let outputTextElem = document.getElementById("outputText");
+    updateLoading("Loading");
+    userInputBox.value = text;
+    outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
-    let lineEnding = getLineEnding(text);
-    console.log({e:lineEnding})
-    console.log({e:text});
-    let lines = text.split(lineEnding);
-    console.log(lines);
-    for(let i = 0; i < lines.length; i++)
+    lineEnding = getLineEnding(text);
+    lines = text.split(lineEnding);
+    lineInd = 0;
+    function runLine()
     {
-        let line = lines[i];
-        console.log({i:i,e:line})
+        let line = lines[0];
+        lines.splice(0, 1);
+        lineInd++;
+        console.log("line " + (lineInd + 1) + ": " + line);
         let lineElem = document.createElement("div");
         //find all of the words
         let lastWordDiv = null;
@@ -199,8 +208,16 @@ function loadText(text)
             lastWordDiv = wordDiv;
         }
         outputTextElem.appendChild(lineElem);
+        if(lines.length > 0)
+        {
+            window.setTimeout(() => { runLine(); }, 0);
+        }
+        else
+        {
+            updateLoading(null);
+        }
     }
-    updateLoading(null);
+    runLine();
 }
 function setDictionaryPage(word)
 {
