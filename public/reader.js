@@ -200,7 +200,7 @@ function loadText(text)
                 {
                     foundWord = personalDict[word];
                 }
-                pinyintext.innerHTML = foundWord[foundWord.length - 1].pinyin;
+                pinyintext.innerHTML = foundWord[foundWord.length - 1].pinyin.split(",")[0];
                 lastWordIsDef = true;
                 lineElem.appendChild(wordDiv);
             }

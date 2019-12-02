@@ -56,8 +56,11 @@ function main()
 
     expressApp.use(express.static("public"));
     ioServer.on("connection", (socket) => {
-        console.log("received connection from a client");
-        socket.on("disconnect", () => { console.log("closed connection to a client"); })
+        var originInformation = socket.request.connection.remoteFamily + " " + socket.request.connection.remoteAddress + " port " + socket.request.connection.remotePort;
+        console.log("client connected ( " + originInformation + " )");
+        socket.on("disconnect", () => {
+            console.log("client disconnected ( " + originInformation + " )");
+        });
         socket.on("set", (dataObj) => {
             let user = dataObj.username;
             let column = user + "_" + dataObj.column;
@@ -68,6 +71,7 @@ function main()
                 database[column] = {}
             }
             database[column][row] = itemObj;
+            console.log(column + ":" + row + " in database set ( " + originInformation + " )");
             changesMade = true;
         });
         socket.on("request", (dataObj) => {
@@ -83,13 +87,15 @@ function main()
             {
                 columnData = database[column];
             }
+            console.log(column + " in database returned to \"" + username + "\" ( " + originInformation + " )");
             socket.emit("column", {
                 name: column,
                 column: columnData
             });
         });
         socket.on("reset", () => {
-            database = {};
+            //database = {};
+            //regenerateDatabase();
             changesMade = true;
         });
     });
