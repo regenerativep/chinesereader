@@ -17,30 +17,37 @@
                 margin: 2px;
             }
             .dictbox {
-                outline-color: black;
-                outline-width: 2px;
-                outline-style: solid;
-                padding: 8px;
-                background-color: white;
+                padding: 0px;
+                background-color: rgba(0, 0, 0, 0);
                 margin-left: 8px;
             }
             #dictBoxContent {
                 max-height: 11em;
                 max-width: 48em;
                 overflow: auto;
-            }
-            #dictBoxContent div {
-                outline-color: lightgray;
+                outline-color: black;
                 outline-width: 1px;
                 outline-style: solid;
-                padding: 8px;
+                background-color: white;
+            }
+            #dictBoxContent div {
+                outline-color: gray;
+                outline-width: 2px;
+                outline-style: solid;
+                margin-left: 0px;
+                margin-right: 0px;
                 margin: 2px;
             }
             #dictBoxContent div div {
                 display: inline-block;
+                outline-color: lightgray;
             }
             .dictbox div p {
-                margin: 0px;
+                margin-top: 0px;
+                margin-bottom: 0px;
+                margin-left: 4px;
+                margin-right: 4px;
+                padding: 3px;
             }
             .savelist {
                 outline-color: black;
@@ -98,7 +105,6 @@
                 padding-right: 0.1em;
                 padding-top: 0px;
                 padding-bottom: 0px;
-                margin-bottom: 1em;
             }
             .word:hover {
                 background-color: rgba(0, 0, 0, 0.1);
@@ -118,6 +124,26 @@
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
+            }
+            #pinyinLookupResults {
+                max-width: 24em;
+            }
+            #dictBoxCloseButtonRow {
+                height: 2em;
+            }
+            #dictBoxCloseButtonContainer {
+                outline-color: black;
+                outline-style: solid;
+                outline-width: 1px;
+                background-color: white;
+                padding-left: 4px;
+                padding-right: 4px;
+                margin-bottom: 2px;
+                position: absolute;
+                right: 0px;
+            }
+            #dictBoxCloseButtonContainer:hover {
+                background-color: rgb(255, 127, 127);
             }
         </style>
     </head>
@@ -148,8 +174,6 @@
                 <input type="text" id="inputDefPinyin" placeholder="pinyin"><br>
                 <textarea id="inputDefDefinition" rows="4" cols="50" placeholder="definition"></textarea><br>
                 <input type="button" value="Define" id="inputDefButton">
-            </div>
-            <div class="inputArea">
                 <p class="sectitle">Lookup word</p>
                 <p class="subtitle">Characters</p>
                 <input type="text" id="inputLookupCharacters" placeholder="characters">
@@ -157,9 +181,6 @@
                 <p class="subtitle">Pinyin (separate each by a space ex. "ni3 hao3")</p>
                 <input type="text" id="inputLookupPinyin" placeholder="pinyin">
                 <input type="button" id="inputLookupPinyinButton" value="Look up">
-                <div style="overflow:scroll;height:6em;">
-                    <p id="pinyinLookupResults"></p>
-                </div>
             </div>
         </div>
         <div id="saveList" class="savelist">
@@ -170,12 +191,12 @@
             <div id="outputText"></div>
         </div>
         <div class="dictbox fixed" id="dictBox" style="display:none;">
-            <div style="display:inline-block;">
-                <p id="dictBoxCloseButton">Close</p>
+            <div id="dictBoxCloseButtonRow">
+                <div id="dictBoxCloseButtonContainer" style="display:inline-block;">
+                    <p id="dictBoxCloseButton">Close</p>
+                </div>
             </div>
-            <div id="dictBoxContent">
-
-            </div>
+            <div id="dictBoxContent"></div>
         </div>
     </body>
 </html>

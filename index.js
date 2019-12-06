@@ -34,6 +34,7 @@ function saveDatabase()
 }
 function regenerateDatabase()
 {
+    database = {};
     console.log("regenerating database");
     let hskDicts = hskupdate.loadHSK();
     let fullDict = hskupdate.loadFullDict();

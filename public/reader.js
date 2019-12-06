@@ -1,6 +1,13 @@
 var socket;
 var accountName = "";
-var userInputBox, saveNameInputBox, saveListDiv, defWordInput, defPinyinInput, defDefInput, lookupCharInp, lookupPinyinInp;
+var userInputBox, saveNameInputBox, saveListDiv,
+    defWordInput, defPinyinInput, defDefInput, lookupCharInp,
+    lookupPinyinInp, dictBoxCloseButton, setAccountButton,
+    inputLookupCharactersButton, inputLookupPinyinButton,
+    textSubmitButton, textLoadButton, submitDefinitionButton,
+    dictBox, inputAccountName, accountNameOutput,
+    outputTextElem, dictBoxContent;
+var lines, lineEnding, lineInd;
 var saveNameList = {};
 var wordDict = {}, personalDict = {};
 function addSaveToList(name, text)
@@ -122,12 +129,21 @@ function getLineEnding(text)
     }
     return lineEnding;
 }
-var lines, lineEnding, outputTextElem, lineInd;
+// class DictionaryDatabase
+// {
+//     constructor()
+//     {
+//         this.wordList = [];
+//     }
+//     addWord(wordObj) // {}
+//     {
+
+//     }
+// }
 function loadText(text)
 {
     updateLoading("Loading");
     userInputBox.value = text;
-    outputTextElem = document.getElementById("outputText");
     outputTextElem.innerHTML = "";
     lineEnding = getLineEnding(text);
     lines = text.split(lineEnding);
@@ -230,9 +246,11 @@ function setDictionaryPage(word)
     {
         return;
     }
-    let dictBox = document.getElementById("dictBox");
+    loadDictionaryPageFromWordList(wordList);
+}
+function loadDictionaryPageFromWordList(wordList)
+{
     dictBox.setAttribute("style", "display:block;");
-    let dictBoxContent = document.getElementById("dictBoxContent");
     dictBoxContent.innerHTML = "";
     for(let i = 0; i < wordList.length; i++)
     {
@@ -242,7 +260,7 @@ function setDictionaryPage(word)
             let dictElem = document.createElement("div");
             let dictWordElem = document.createElement("div");
             let dictWordTextElem = document.createElement("p");
-            dictWordTextElem.innerHTML = "Word: " + word;
+            dictWordTextElem.innerHTML = "Word: " + wordObj.word;
             dictWordElem.appendChild(dictWordTextElem);
             let dictPinyinElem = document.createElement("div");
             let dictPinyinTextElem = document.createElement("p");
@@ -252,14 +270,18 @@ function setDictionaryPage(word)
             let dictDefTextElem = document.createElement("p");
             dictDefTextElem.innerHTML = "Definition: " + wordObj.definition;
             dictDefElem.appendChild(dictDefTextElem);
-            let dictHskElem = document.createElement("div");
-            let dictHskTextElem = document.createElement("p");
-            dictHskTextElem.innerHTML = "HSK: " + wordList.hsk;
-            dictHskElem.appendChild(dictHskTextElem);
+            dictDefElem.style = "margin-left: 1em;";
             dictElem.appendChild(dictWordElem);
             dictElem.appendChild(dictPinyinElem);
+            if(typeof wordList.hsk !== "undefined")
+            {
+                let dictHskElem = document.createElement("div");
+                let dictHskTextElem = document.createElement("p");
+                dictHskTextElem.innerHTML = "HSK: " + wordList.hsk;
+                dictHskElem.appendChild(dictHskTextElem);
+                dictElem.appendChild(dictHskElem);
+            }
             dictElem.appendChild(dictDefElem);
-            dictElem.appendChild(dictHskElem);
             dictBoxContent.appendChild(dictElem);
         }
     }
@@ -276,108 +298,179 @@ function loadSaves()
 function clearLocalSaves()
 {
     saveNameList = {};
-    saveListDiv.innerHTML = "<p>Saved texts</p><p id=\"loadingOutput\"></p>";
+    saveListDiv.innerHTML = "<p class=\"sectitle\">Saved texts</p><p class=\"subtitle\" id=\"loadingOutput\"></p>";
 }
-window.addEventListener("load", () => {
-    socket = io();
-    socket.on("column", (dataObj) => {
-        console.log("got data for column " + dataObj.name);
-        let isPersonal = false;
-        if(accountName != "" && dataObj.name.substring(0, accountName.length) == accountName)
+function loadDomReferences()
+{
+    userInputBox = document.getElementById("userInput");
+    saveNameInputBox = document.getElementById("saveNameInput");
+    saveListDiv = document.getElementById("saveList");
+    defWordInput = document.getElementById("inputDefName");
+    defPinyinInput = document.getElementById("inputDefPinyin");
+    defDefInput = document.getElementById("inputDefDefinition");
+    lookupCharInp = document.getElementById("inputLookupCharacters");
+    lookupPinyinInp = document.getElementById("inputLookupPinyin");
+    inputLookupCharactersButton = document.getElementById("inputLookupCharactersButton");
+    inputLookupPinyinButton = document.getElementById("inputLookupPinyinButton");
+    dictBoxCloseButton = document.getElementById("dictBoxCloseButton");
+    setAccountButton = document.getElementById("setAccountButton");
+    textSubmitButton = document.getElementById("textSubmitButton");
+    textLoadButton = document.getElementById("textLoadButton");
+    submitDefinitionButton = document.getElementById("inputDefButton");
+    dictBox = document.getElementById("dictBox");
+    inputAccountName = document.getElementById("inputAccountName");
+    accountNameOutput = document.getElementById("accountNameOutput");
+    outputTextElem = document.getElementById("outputText");
+    dictBoxContent = document.getElementById("dictBoxContent");
+}
+function onColumn(dataObj)
+{
+    console.log("got data for column " + dataObj.name);
+    let isPersonal = false;
+    if(accountName != "" && dataObj.name.substring(0, accountName.length) == accountName)
+    {
+        dataObj.name = dataObj.name.substring(accountName.length + 1);
+        isPersonal = true;
+        console.log("column is personal: " + dataObj.name);
+    }
+    if(dataObj.name == "saves")
+    {
+        clearLocalSaves();
+        for(let key in dataObj.column)
         {
-            dataObj.name = dataObj.name.substring(accountName.length + 1);
-            isPersonal = true;
-            console.log("column is personal: " + dataObj.name);
+            addSaveToList(key, dataObj.column[key]);
         }
-        if(dataObj.name == "saves")
+    }
+    else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
+    {
+        let hskVal = parseInt(dataObj.name.substring(3));
+        if(isNaN(hskVal) || hskVal == 0)
         {
-            clearLocalSaves();
-            for(let key in dataObj.column)
-            {
-                addSaveToList(key, dataObj.column[key]);
-            }
+            hskVal = "none";
         }
-        else if(dataObj.name.substring(0, 3) == "hsk" || dataObj.name == "other")
+        //console.log("got data for " + dataObj.name);
+        let currentPos = 0;
+        let maxPos = 4;
+        let len = {
+            hsk1: 150,
+            hsk2: 151,
+            hsk3: 300,
+            hsk4: 600,
+            hsk5: 1300,
+            hsk6: 2500,
+            other: 117588-31
+        }[dataObj.name];
+        if(typeof len == "undefined")
         {
-            let hskVal = parseInt(dataObj.name.substring(3));
-            if(isNaN(hskVal) || hskVal == 0)
+            len = -1;
+        }
+        let i = 0;
+        let useDict;
+        if(isPersonal)
+        {
+            useDict = personalDict;
+        }
+        else
+        {
+            useDict = wordDict;
+        }
+        for(let key in dataObj.column)
+        {
+            let item = dataObj.column[key];
+            if(useDict.hasOwnProperty(key))
             {
-                hskVal = "none";
-            }
-            //console.log("got data for " + dataObj.name);
-            let currentPos = 0;
-            let maxPos = 4;
-            let len = {
-                hsk1: 150,
-                hsk2: 151,
-                hsk3: 300,
-                hsk4: 600,
-                hsk5: 1300,
-                hsk6: 2500,
-                other: 117588-31
-            }[dataObj.name];
-            if(typeof len == "undefined")
-            {
-                len = -1;
-            }
-            let i = 0;
-            let useDict;
-            if(isPersonal)
-            {
-                useDict = personalDict;
+                useDict[key].push(...item);
+                if(useDict[key].hsk < hskVal || typeof useDict[key].hsk !== "number")
+                {
+                    useDict[key].hsk = hskVal;
+                }
             }
             else
             {
-                useDict = wordDict;
+                item.hsk = hskVal;
+                useDict[key] = item;
             }
-            for(let key in dataObj.column)
+            i++;
+            if(len != -1)
             {
-                let item = dataObj.column[key];
-                if(useDict.hasOwnProperty(key))
+                if(i >= len * (currentPos / maxPos))
                 {
-                    useDict[key].push(...item);
-                    if(useDict[key].hsk < hskVal || typeof useDict[key].hsk !== "number")
-                    {
-                        useDict[key].hsk = hskVal;
-                    }
-                }
-                else
-                {
-                    item.hsk = hskVal;
-                    useDict[key] = item;
-                }
-                i++;
-                if(len != -1)
-                {
-                    if(i > len * (currentPos / maxPos))
-                    {
-                        currentPos++;
-                        console.log(((currentPos / maxPos) * 100) + "%");
-                    }
-                }
-            }
-            if(!isPersonal && dataObj.name == "other")
-            {
-                for(let i = 1; i <= 6; i++)
-                {
-                    socket.emit("request", {
-                        column: "hsk" + i
-                    });
+                    currentPos++;
+                    console.log(i + " / " + len);
                 }
             }
         }
-    });
+        if(!isPersonal && dataObj.name == "other")
+        {
+            for(let i = 1; i <= 6; i++)
+            {
+                socket.emit("request", {
+                    column: "hsk" + i
+                });
+            }
+        }
+    }
+}
+function beginConnect()
+{
+    socket = io();
+    socket.on("column", (dataObj) => { onColumn(dataObj); });
     socket.on("connect", () => {
         wordDict = {};
         socket.emit("request", {
             column: "other"
         });
     });
-    userInputBox = document.getElementById("userInput");
-    saveNameInputBox = document.getElementById("saveNameInput");
-    saveListDiv = document.getElementById("saveList");
-    let submitButton = document.getElementById("textSubmitButton");
-    submitButton.addEventListener("click", () => {
+}
+function findFromPinyin(pinyin)
+{
+    let results = [];
+    function findInDict(useDict)
+    {
+        for(let key in useDict)
+        {
+            let wordList = useDict[key];
+            for(let i = 0; i < wordList.length; i++)
+            {
+                let wordData = wordList[i];
+                if(wordData.pinyin == pinyin)
+                {
+                    results.push(wordData);
+                }
+            }
+        }
+    }
+    findInDict(wordDict);
+    findInDict(personalDict);
+    return results;
+}
+function loginAs(username)
+{
+    if(username == "")
+    {
+        return console.log("bad username");
+    }
+    accountName = username;
+    accountNameOutput.innerHTML = username;
+    loadSaves();
+    personalDict = {};
+    socket.emit("request", {
+        username: accountName,
+        column: "other"
+    });
+}
+function makeEnterButtonPair(textbox, button)
+{
+    textbox.addEventListener("keyup", ((button) => { return (event) => {
+        if(event.key !== "Enter") return;
+        button.click();
+        event.preventDefault();
+    }; })(button));
+}
+window.addEventListener("load", () => {
+    loadDomReferences();
+    beginConnect();
+    textSubmitButton.addEventListener("click", () => {
         let name = saveNameInputBox.value;
         let text = userInputBox.value;
         socket.emit("set", {
@@ -388,15 +481,10 @@ window.addEventListener("load", () => {
         });
         addSaveToList(name, text);
     });
-    let textLoadButton = document.getElementById("textLoadButton");
     textLoadButton.addEventListener("click", () => {
         let text = userInputBox.value;
         loadText(text);
     });
-    defWordInput = document.getElementById("inputDefName");
-    defPinyinInput = document.getElementById("inputDefPinyin");
-    defDefInput = document.getElementById("inputDefDefinition");
-    let submitDefinitionButton = document.getElementById("inputDefButton");
     submitDefinitionButton.addEventListener("click", () => {
         let word = defWordInput.value;
         let pinyin = defPinyinInput.value;
@@ -425,61 +513,32 @@ window.addEventListener("load", () => {
             });
         }
     });
-    lookupCharInp = document.getElementById("inputLookupCharacters");
-    lookupPinyinInp = document.getElementById("inputLookupPinyin");
-    document.getElementById("inputLookupCharactersButton").addEventListener("click", () => {
+    inputLookupCharactersButton.addEventListener("click", () => {
         let inp = lookupCharInp.value;
         setDictionaryPage(inp);
     });
-    document.getElementById("inputLookupPinyinButton").addEventListener("click", () => {
+    inputLookupPinyinButton.addEventListener("click", () => {
         let inp = lookupPinyinInp.value;
-        //turn it into toned pinyin
         let pinyin = numberedPinyinToTonedPinyin(inp);
-        //find the corresponding dict values
-        let results = [];
-        function findInDict(useDict)
-        {
-            for(let key in useDict)
-            {
-                let wordList = useDict[key];
-                for(let i = 0; i < wordList.length; i++)
-                {
-                    let wordData = wordList[i];
-                    if(wordData.pinyin == pinyin)
-                    {
-                        results.push(wordData);
-                    }
-                }
-            }
-        }
-        findInDict(wordDict);
-        findInDict(personalDict);
-        //output them to the user
-        let outputElem = document.getElementById("pinyinLookupResults");
-        outputElem.innerHTML = "";
+        let results = findFromPinyin(pinyin);
+        loadDictionaryPageFromWordList(results);
+        /*
+        pinyinLookupResults.innerHTML = "";
         for(let i = 0; i < results.length; i++)
         {
             let wordData = results[i];
-            outputElem.innerHTML += wordData.word + ": " + wordData.definition + "<br>";
-        }
+            pinyinLookupResults.innerHTML += wordData.word + ": " + wordData.definition + "<br>";
+        }*/
     });
-    document.getElementById("dictBoxCloseButton").addEventListener("click", () => {
-        document.getElementById("dictBox").setAttribute("style", "display:none;");
+    dictBoxCloseButton.addEventListener("click", () => {
+        dictBox.setAttribute("style", "display:none;");
     });
-    document.getElementById("setAccountButton").addEventListener("click", () => { //todo sanitize
-        let username = document.getElementById("inputAccountName").value;
-        let nameOutput = document.getElementById("accountNameOutput");
-        if(username == "")
-        {
-            return console.log("bad username");
-        }
-        accountName = username;
-        nameOutput.innerHTML = username;
-        loadSaves();
-        personalDict = {};
-        socket.emit("request", {
-            username: accountName,
-            column: "other"
-        });
+    setAccountButton.addEventListener("click", () => { //todo sanitize
+        let username = inputAccountName.value;
+        loginAs(username);
     });
+    makeEnterButtonPair(inputAccountName, setAccountButton);
+    makeEnterButtonPair(saveNameInputBox, textSubmitButton);
+    makeEnterButtonPair(lookupCharInp, inputLookupCharactersButton);
+    makeEnterButtonPair(lookupPinyinInp, inputLookupPinyinButton);
 });
