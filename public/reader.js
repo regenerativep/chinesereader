@@ -1,5 +1,5 @@
 var socket;
-var accountName = "";
+var accountName = "", showPinyin = true;
 var userInputBox, saveNameInputBox, saveListDiv,
     defWordInput, defPinyinInput, defDefInput, lookupCharInp,
     lookupPinyinInp, dictBoxCloseButton, setAccountButton,
@@ -184,6 +184,7 @@ function loadText(text)
             zitext.setAttribute("class", "wordChar");
             let pinyintext = document.createElement("p");
             pinyintext.setAttribute("class", "wordPinyin");
+            pinyintext.setAttribute("style", getPinyinStyle(showPinyin));
             wordDiv.appendChild(zitext);
             wordDiv.appendChild(pinyintext);
             if(word.length == 0)
@@ -249,6 +250,19 @@ function setDictionaryPage(word)
         return;
     }
     loadDictionaryPageFromWordList(wordList);
+}
+function setShowPinyin(show)
+{
+    let pinyinElements = document.getElementsByClassName("wordPinyin");
+    let style = getPinyinStyle(show);
+    for(let i = 0; i < pinyinElements.length; i++)
+    {
+        pinyinElements[i].style = style;
+    }
+}
+function getPinyinStyle(show)
+{
+    return "display: " + (show ? "block" : "none") + ";";
 }
 function loadDictionaryPageFromWordList(wordList)
 {
@@ -324,6 +338,7 @@ function loadDomReferences()
     accountNameOutput = document.getElementById("accountNameOutput");
     outputTextElem = document.getElementById("outputText");
     dictBoxContent = document.getElementById("dictBoxContent");
+    showPinyinCheckbox = document.getElementById("showPinyinCheckbox");
 }
 function onColumn(dataObj)
 {
@@ -524,13 +539,6 @@ window.addEventListener("load", () => {
         let pinyin = numberedPinyinToTonedPinyin(inp);
         let results = findFromPinyin(pinyin);
         loadDictionaryPageFromWordList(results);
-        /*
-        pinyinLookupResults.innerHTML = "";
-        for(let i = 0; i < results.length; i++)
-        {
-            let wordData = results[i];
-            pinyinLookupResults.innerHTML += wordData.word + ": " + wordData.definition + "<br>";
-        }*/
     });
     dictBoxCloseButton.addEventListener("click", () => {
         dictBox.setAttribute("style", "display:none;");
@@ -538,6 +546,10 @@ window.addEventListener("load", () => {
     setAccountButton.addEventListener("click", () => { //todo sanitize
         let username = inputAccountName.value;
         loginAs(username);
+    });
+    showPinyinCheckbox.addEventListener("click", () => {
+        showPinyin = showPinyinCheckbox.checked;
+        setShowPinyin(showPinyin);
     });
     makeEnterButtonPair(inputAccountName, setAccountButton);
     makeEnterButtonPair(saveNameInputBox, textSubmitButton);
