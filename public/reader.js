@@ -129,17 +129,19 @@ function getLineEnding(text)
     }
     return lineEnding;
 }
-// class DictionaryDatabase
-// {
-//     constructor()
-//     {
-//         this.wordList = [];
-//     }
-//     addWord(wordObj) // {}
-//     {
-
-//     }
-// }
+var longestWordLength;
+function findLongestWordLength(dict)
+{
+    let longestLength = 0;
+    for(let key in dict)
+    {
+        if(key.length > longestLength)
+        {
+            longestLength = key.length;
+        }
+    }
+    return longestLength;
+}
 function loadText(text)
 {
     updateLoading("Loading");
@@ -148,6 +150,7 @@ function loadText(text)
     lineEnding = getLineEnding(text);
     lines = text.split(lineEnding);
     lineInd = 0;
+    longestWordLength = Math.max(findLongestWordLength(wordDict), findLongestWordLength(personalDict));
     function runLine()
     {
         let line = lines[0];
@@ -161,16 +164,15 @@ function loadText(text)
         while(line.length > 0)
         {
             word = "";
-            function findWord(useDict) //todo optimize this
+            function findWord(useDict)
             {
-                for(let key in useDict)
+                for(let i = Math.min(longestWordLength, line.length); i > 0; i--)
                 {
-                    if(line.substring(0, key.length) == key)
+                    let testWord = line.substring(0, i);
+                    if(typeof useDict[testWord] !== "undefined" && testWord.length > word.length)
                     {
-                        if(key.length > word.length)
-                        {
-                            word = key;
-                        }
+                        word = testWord;
+                        return;
                     }
                 }
             }
